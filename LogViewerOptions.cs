@@ -44,4 +44,17 @@ public sealed class LogViewerOptions
     /// environment-variable placeholders (e.g. <c>%PROGRAMDATA%\MyApp\Logs\App.log</c>).
     /// </summary>
     public string[] ExtraPaths { get; set; } = [];
+
+    /// <summary>
+    /// Hard cap on the number of lines returned when the user selects <c>"All"</c>.
+    /// Without this guard a very large log file (hundreds of MB) can exhaust server
+    /// memory and freeze the browser tab trying to render the result.
+    /// <para>
+    /// The last <c>AllLinesLimit</c> lines of the file are returned; the status bar
+    /// shows a warning when the file was larger than the cap.
+    /// </para>
+    /// <para>Set to <c>0</c> to disable the cap — only safe for files under ~50 MB.</para>
+    /// <para>Default: <c>10 000</c></para>
+    /// </summary>
+    public int AllLinesLimit { get; set; } = 10_000;
 }

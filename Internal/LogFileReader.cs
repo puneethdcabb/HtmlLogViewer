@@ -217,7 +217,8 @@ internal static class LogFileReader
 
         try
         {
-            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite,
+                bufferSize: 65_536); // 64 KB I/O buffer — reduces syscall count for large files
             using var reader = new StreamReader(fs, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
 
             // ── "All lines" path: stream the whole file ──────────────────────────

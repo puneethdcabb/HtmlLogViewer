@@ -45,7 +45,7 @@ internal static class HtmlBuilder
         LogViewerOptions options)
     {
         var now         = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-        var statusLabel = BuildStatusLabel(selectedLines, logLines.Length);
+        var statusLabel = BuildStatusLabel(selectedLines, logLines.Length, options.AllLinesLimit);
 
         return HtmlTemplate.Value
             .Replace("{{CSS}}",            CssContent.Value,                                              StringComparison.Ordinal)
@@ -63,7 +63,8 @@ internal static class HtmlBuilder
         string[] logLines,
         string logFilePath,
         FileInfo[] allFiles,
-        string selectedLines)
+        string selectedLines,
+        int allLinesLimit = 0)
     {
         var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         return new
@@ -71,7 +72,7 @@ internal static class HtmlBuilder
             selectedFile  = logFilePath,
             filesHtml     = BuildFileOptions(allFiles, logFilePath),
             logHtml       = BuildLogLines(logLines),
-            statusLabel   = BuildStatusLabel(selectedLines, logLines.Length),
+            statusLabel   = BuildStatusLabel(selectedLines, logLines.Length, allLinesLimit),
             generatedTime = now
         };
     }
@@ -145,28 +146,63 @@ internal static class HtmlBuilder
         }).ToList();
     }
 
-    private static string BuildStatusLabel(string selectedLines, int lineCount)
+    private static string BuildStatusLabel(string selectedLines, int lineCount, int allLinesLimit = 0)
     {
         var countStr = lineCount.ToString(CultureInfo.InvariantCulture);
-        return selectedLines.Equals("All", StringComparison.OrdinalIgnoreCase)
-            ? $"All {countStr} lines"
-            : $"Last {selectedLines} lines ({countStr} shown)";
+        if (selectedLines.Equals("All", StringComparison.OrdinalIgnoreCase))
+        {
+            if (allLinesLimit > 0 && lineCount >= allLinesLimit)
+                return $"All \u25b8 last {countStr} lines shown (file too large \u2014 capped at {allLinesLimit:N0})";
+            return $"All {countStr} lines";
+        }
+        return $"Last {selectedLines} lines ({countStr} shown)";
     }
 
     private static string BuildLogLines(string[] logLines)
     {
-        var sb = new StringBuilder(capacity: logLines.Length * 120);
+        var sb = new StringBuilder(capacity: logLines.Length * 150);
         foreach (var logLine in logLines)
         {
-            var escaped = HttpUtility.HtmlEncode(logLine);
             var css = logLine.Contains("[ERR]", StringComparison.Ordinal) ? "line-err"
                 : logLine.Contains("[WRN]", StringComparison.Ordinal)     ? "line-wrn"
                 : logLine.Contains("[FTL]", StringComparison.Ordinal)     ? "line-ftl"
                 : logLine.Contains("[DBG]", StringComparison.Ordinal)     ? "line-dbg"
                 : "line-inf";
-            sb.Append(CultureInfo.InvariantCulture, $"<span class=\"{css}\">{escaped}</span>\n");
+            sb.Append("<span class=\"");
+            sb.Append(css);
+            sb.Append("\">");
+            AppendHtmlEncoded(sb, logLine.AsSpan());
+            sb.Append("</span>\n");
         }
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// Writes <paramref name="text"/> into <paramref name="sb"/> replacing the five
+    /// HTML-unsafe characters with their entity equivalents.
+    /// No intermediate string is allocated; safe character runs are appended as
+    /// <see cref="ReadOnlySpan{T}"/> slices directly onto the <see cref="StringBuilder"/>.
+    /// </summary>
+    private static void AppendHtmlEncoded(StringBuilder sb, ReadOnlySpan<char> text)
+    {
+        int start = 0;
+        for (int i = 0; i < text.Length; i++)
+        {
+            var entity = text[i] switch
+            {
+                '&'  => "&amp;",
+                '<'  => "&lt;",
+                '>'  => "&gt;",
+                '"'  => "&quot;",
+                '\'' => "&#39;",
+                _    => null
+            };
+            if (entity is null) continue;
+            if (i > start) sb.Append(text[start..i]);
+            sb.Append(entity);
+            start = i + 1;
+        }
+        if (start < text.Length) sb.Append(text[start..]);
     }
 }
 

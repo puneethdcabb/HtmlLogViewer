@@ -70,7 +70,7 @@ public sealed class LogViewerController : ControllerBase
         try
         {
             var d = ResolveLogData(file, lines, dirs);
-            return Ok(HtmlBuilder.BuildApiResponse(d.LogLines, d.LogFilePath, d.AllFiles, d.EffectiveLines));
+            return Ok(HtmlBuilder.BuildApiResponse(d.LogLines, d.LogFilePath, d.AllFiles, d.EffectiveLines, _options.AllLinesLimit));
         }
         catch (Exception ex)
         {
@@ -115,7 +115,7 @@ public sealed class LogViewerController : ControllerBase
     private int? ParseLineCount(string lines)
     {
         if (lines.Equals("All", StringComparison.OrdinalIgnoreCase))
-            return null;
+            return _options.AllLinesLimit > 0 ? _options.AllLinesLimit : (int?)null;
         return int.TryParse(lines, out var n) && n > 0 ? n : _options.DefaultLineCount;
     }
 
