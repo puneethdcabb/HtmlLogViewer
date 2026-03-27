@@ -1,0 +1,96 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: 20px;
+}
+
+header { margin-bottom: 14px; }
+
+h1 {
+    font-size: 1.4rem;
+    color: #4fc3f7;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.ctrl-group { display: flex; align-items: center; gap: 6px; }
+
+label { font-size: 0.82rem; color: #aaa; white-space: nowrap; }
+
+select {
+    background: #2d2d2d;
+    color: #d4d4d4;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+select:focus { outline: none; border-color: #4fc3f7; }
+
+#file-select { min-width: 200px; max-width: 380px; }
+
+button {
+    background: #0d6efd;
+    color: #fff;
+    border: none;
+    padding: 6px 18px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+button:hover { background: #0b5ed7; }
+
+.meta { font-size: 0.76rem; color: #666; }
+.meta span { color: #888; }
+
+input[type="text"] {
+    background: #2d2d2d;
+    color: #d4d4d4;
+    border: 1px solid #555;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 0.82rem;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+input[type="text"]:focus { outline: none; border-color: #4fc3f7; }
+input[type="text"]::placeholder { color: #555; font-style: italic; }
+
+.ctrl-dirs { flex: 1 1 300px; }
+.ctrl-dirs input { width: 100%; }
+
+#log-container {
+    background: #0d0d0d;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 14px 16px;
+    overflow-x: auto;
+}
+
+pre {
+    font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.line-err { color: #f48771; }
+.line-wrn { color: #dcdcaa; }
+.line-inf { color: #9cdcfe; }
+.line-dbg { color: #6a9955; }
+.line-ftl { color: #ff4444; font-weight: bold; }
