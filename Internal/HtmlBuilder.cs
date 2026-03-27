@@ -16,10 +16,10 @@ namespace HtmlLogViewer.Internal;
 /// </summary>
 internal static class HtmlBuilder
 {
-    // ── Embedded templates — loaded once at class initialisation ─────────────
-    private static readonly string HtmlTemplate = LoadResource("viewer.html");
-    private static readonly string CssContent   = LoadResource("viewer.css");
-    private static readonly string JsContent    = LoadResource("viewer.js");
+    // ── Embedded templates — loaded lazily on first use ──────────────────────
+    private static readonly Lazy<string> HtmlTemplate = new(static () => LoadResource("viewer.html"));
+    private static readonly Lazy<string> CssContent   = new(static () => LoadResource("viewer.css"));
+    private static readonly Lazy<string> JsContent    = new(static () => LoadResource("viewer.js"));
 
     private static string LoadResource(string fileName)
     {
@@ -47,9 +47,9 @@ internal static class HtmlBuilder
         var now         = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
         var statusLabel = BuildStatusLabel(selectedLines, logLines.Length);
 
-        return HtmlTemplate
-            .Replace("{{CSS}}",            CssContent,                                                StringComparison.Ordinal)
-            .Replace("{{JS}}",             JsContent,                                                 StringComparison.Ordinal)
+        return HtmlTemplate.Value
+            .Replace("{{CSS}}",            CssContent.Value,                                              StringComparison.Ordinal)
+            .Replace("{{JS}}",             JsContent.Value,                                               StringComparison.Ordinal)
             .Replace("{{PAGE_TITLE}}",     HttpUtility.HtmlEncode(options.PageTitle),                 StringComparison.Ordinal)
             .Replace("{{FILE_OPTIONS}}",   BuildFileOptions(allFiles, logFilePath),                   StringComparison.Ordinal)
             .Replace("{{LINES_OPTIONS}}",  BuildLinesOptions(options.LineCountOptions, selectedLines), StringComparison.Ordinal)

@@ -220,16 +220,38 @@ internal static class LogFileReader
             using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
             using var reader = new StreamReader(fs, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
 
-            var allLines = new List<string>();
-            string? line;
-            while ((line = reader.ReadLine()) != null)
-                allLines.Add(line);
+            // ── "All lines" path: stream the whole file ──────────────────────────
+                if (lineCount is null)
+                {
+                    var all = new List<string>();
+                    string? l;
+                    while ((l = reader.ReadLine()) != null)
+                        all.Add(l);
+                    return [.. all];
+                }
 
-            if (lineCount is null)
-                return [.. allLines];
+                // ── Tail path: circular buffer ────────────────────────────────────
+                // Only the last N lines are ever allocated; the full file content
+                // never enters memory regardless of file size.
+                int     cap     = lineCount.Value;
+                var     ring    = new string[cap];
+                int     head    = 0;
+                int     written = 0;
+                string? line;
 
-            int skip = Math.Max(0, allLines.Count - lineCount.Value);
-            return allLines.Skip(skip).ToArray();
+                while ((line = reader.ReadLine()) != null)
+                {
+                    ring[head] = line;
+                    head       = (head + 1) % cap;
+                    written++;
+                }
+
+                int filled = Math.Min(written, cap);
+                int start  = written >= cap ? head : 0;
+                var result = new string[filled];
+                for (int i = 0; i < filled; i++)
+                    result[i] = ring[(start + i) % cap];
+                return result;
         }
         catch (IOException ex)
         {
