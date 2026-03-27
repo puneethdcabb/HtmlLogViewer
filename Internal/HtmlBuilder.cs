@@ -2,6 +2,7 @@
 
 using System.Globalization;
 using System.Text;
+using System.Text.Json;
 using System.Web;
 
 namespace HtmlLogViewer.Internal;
@@ -34,7 +35,7 @@ internal static class HtmlBuilder
         return reader.ReadToEnd();
     }
 
-    // ── Per-request page generation ───────────────────────────────────────────
+    // ── Per-request HTML page (initial full render) ───────────────────────────
     internal static string Build(
         string[] logLines,
         string logFilePath,
@@ -43,43 +44,72 @@ internal static class HtmlBuilder
         string userDirs,
         LogViewerOptions options)
     {
-        var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        var now         = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        var statusLabel = BuildStatusLabel(selectedLines, logLines.Length);
 
         return HtmlTemplate
-            .Replace("{{CSS}}",            CssContent,                                               StringComparison.Ordinal)
-            .Replace("{{JS}}",             JsContent,                                                StringComparison.Ordinal)
-            .Replace("{{PAGE_TITLE}}",     HttpUtility.HtmlEncode(options.PageTitle),                StringComparison.Ordinal)
-            .Replace("{{FILE_OPTIONS}}",   BuildFileOptions(allFiles, logFilePath),                  StringComparison.Ordinal)
-            .Replace("{{LINES_OPTIONS}}", BuildLinesOptions(options.LineCountOptions, selectedLines), StringComparison.Ordinal)
-            .Replace("{{DIRS_VALUE}}",     HttpUtility.HtmlAttributeEncode(userDirs),                StringComparison.Ordinal)
-            .Replace("{{STATUS_LABEL}}",   BuildStatusLabel(selectedLines, logLines.Length),         StringComparison.Ordinal)
-            .Replace("{{GENERATED_TIME}}", HttpUtility.HtmlEncode(now),                              StringComparison.Ordinal)
-            .Replace("{{LOG_LINES}}",      BuildLogLines(logLines),                                  StringComparison.Ordinal);
+            .Replace("{{CSS}}",            CssContent,                                                StringComparison.Ordinal)
+            .Replace("{{JS}}",             JsContent,                                                 StringComparison.Ordinal)
+            .Replace("{{PAGE_TITLE}}",     HttpUtility.HtmlEncode(options.PageTitle),                 StringComparison.Ordinal)
+            .Replace("{{FILE_OPTIONS}}",   BuildFileOptions(allFiles, logFilePath),                   StringComparison.Ordinal)
+            .Replace("{{LINES_OPTIONS}}",  BuildLinesOptions(options.LineCountOptions, selectedLines), StringComparison.Ordinal)
+            .Replace("{{LOG_LINES}}",      BuildLogLines(logLines),                                   StringComparison.Ordinal)
+            .Replace("{{BOOTSTRAP_JSON}}", BuildBootstrapJson(logFilePath, selectedLines,
+                                               userDirs, statusLabel, now),                           StringComparison.Ordinal);
+    }
+
+    // ── JSON response for the reactive data endpoint ──────────────────────────
+    internal static object BuildApiResponse(
+        string[] logLines,
+        string logFilePath,
+        FileInfo[] allFiles,
+        string selectedLines)
+    {
+        var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        return new
+        {
+            selectedFile  = logFilePath,
+            filesHtml     = BuildFileOptions(allFiles, logFilePath),
+            logHtml       = BuildLogLines(logLines),
+            statusLabel   = BuildStatusLabel(selectedLines, logLines.Length),
+            generatedTime = now
+        };
     }
 
     // ── Fragment builders ─────────────────────────────────────────────────────
 
+    private static string BuildBootstrapJson(
+        string logFilePath,
+        string selectedLines,
+        string userDirs,
+        string statusLabel,
+        string generatedTime)
+    {
+        var data = new
+        {
+            selectedFile  = logFilePath,
+            selectedLines,
+            dirs          = userDirs,
+            statusLabel,
+            generatedTime
+        };
+
+        return JsonSerializer.Serialize(data);
+    }
+
+    private record struct FileEntry(string Path, string Name);
+
     private static string BuildFileOptions(FileInfo[] allFiles, string logFilePath)
     {
-        // When the same filename appears in multiple source directories,
-        // append the parent directory name to disambiguate.
-        var duplicateNames = allFiles
-            .GroupBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
-            .Where(g => g.Count() > 1)
-            .Select(g => g.Key)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
+        var entries = GetFileEntries(allFiles);
         var sb = new StringBuilder();
-        foreach (var fi in allFiles)
+        foreach (var e in entries)
         {
-            var sel = string.Equals(fi.FullName, logFilePath, StringComparison.OrdinalIgnoreCase)
+            var sel = string.Equals(e.Path, logFilePath, StringComparison.OrdinalIgnoreCase)
                 ? " selected" : string.Empty;
-            var display = duplicateNames.Contains(fi.Name)
-                ? $"{fi.Name} ({fi.Directory?.Name ?? string.Empty})"
-                : fi.Name;
             sb.Append(
-                $"<option value=\"{HttpUtility.HtmlAttributeEncode(fi.FullName)}\"{sel}>" +
-                $"{HttpUtility.HtmlEncode(display)}</option>\n");
+                $"<option value=\"{HttpUtility.HtmlAttributeEncode(e.Path)}\"{sel}>" +
+                $"{HttpUtility.HtmlEncode(e.Name)}</option>\n");
         }
         return sb.ToString();
     }
@@ -90,13 +120,29 @@ internal static class HtmlBuilder
         foreach (var count in lineCountOptions)
         {
             var countStr = count.ToString(CultureInfo.InvariantCulture);
-            var sel = selectedLines.Equals(countStr, StringComparison.OrdinalIgnoreCase)
-                ? " selected" : string.Empty;
+            var sel = selectedLines.Equals(countStr, StringComparison.OrdinalIgnoreCase) ? " selected" : string.Empty;
             sb.Append($"<option value=\"{countStr}\"{sel}>{countStr}</option>\n");
         }
         var allSel = selectedLines.Equals("All", StringComparison.OrdinalIgnoreCase) ? " selected" : string.Empty;
         sb.Append($"<option value=\"All\"{allSel}>All</option>\n");
         return sb.ToString();
+    }
+
+    private static List<FileEntry> GetFileEntries(FileInfo[] allFiles)
+    {
+        var duplicateNames = allFiles
+            .GroupBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        return allFiles.Select(fi =>
+        {
+            var display = duplicateNames.Contains(fi.Name)
+                ? $"{fi.Name} ({fi.Directory?.Name ?? string.Empty})"
+                : fi.Name;
+            return new FileEntry(fi.FullName, display);
+        }).ToList();
     }
 
     private static string BuildStatusLabel(string selectedLines, int lineCount)
@@ -123,3 +169,4 @@ internal static class HtmlBuilder
         return sb.ToString();
     }
 }
+

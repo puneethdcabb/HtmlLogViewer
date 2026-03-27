@@ -7,45 +7,60 @@
     <style>
 {{CSS}}
     </style>
+    <script>window.__LV__ = {{BOOTSTRAP_JSON}};</script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 </head>
-<body>
+<body x-data="logViewer()" x-init="init()" :class="{ 'light-mode': isLight }">
     <header>
         <div class="header-top">
             <h1>&#128221;&#160;{{PAGE_TITLE}}</h1>
-            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Switch theme">
-                <span id="theme-icon"></span>
-                <span id="theme-label">Dark</span>
-            </button>
+            <div class="header-actions">
+                <span class="loading-badge" x-show="loading">&#8635;&nbsp;Loading&hellip;</span>
+                <button class="theme-toggle" @click="toggleTheme()"
+                        :title="isLight ? 'Switch to Dark' : 'Switch to Light'">
+                    <span x-html="isLight ? ICON_SUN : ICON_MOON"></span>
+                    <span x-text="isLight ? 'Light' : 'Dark'"></span>
+                </button>
+            </div>
         </div>
         <div class="controls">
             <div class="ctrl-group">
                 <label for="file-select">Log file:</label>
-                <select id="file-select">
-{{FILE_OPTIONS}}
-                </select>
+                <select id="file-select" x-ref="fileSelect" x-model="selectedFile" @change="fetchData()">{{FILE_OPTIONS}}</select>
             </div>
             <div class="ctrl-group">
                 <label for="lines-select">Lines:</label>
-                <select id="lines-select">
-{{LINES_OPTIONS}}
-                </select>
+                <select id="lines-select" x-model="selectedLines" @change="fetchData()">{{LINES_OPTIONS}}</select>
             </div>
             <div class="ctrl-group ctrl-dirs">
                 <label for="dirs-input">Log Directories:</label>
-                <input type="text" id="dirs-input"
+                <input type="text" id="dirs-input" x-model="dirs"
                        placeholder="C:\Logs\;D:\Other\"
-                       title="Semicolon-separated paths. Scanned for *.log and *.txt on Refresh."
-                       value="{{DIRS_VALUE}}">
+                       title="Semicolon-separated paths. Scanned for *.log and *.txt on Refresh.">
             </div>
-            <button onclick="doRefresh()">&#8635; Refresh</button>
+            <button @click="fetchData()">&#8635;&nbsp;Refresh</button>
+            <div class="ctrl-group ctrl-autorefresh">
+                <label class="auto-label">
+                    <input type="checkbox" x-model="autoRefresh" @change="onAutoRefreshToggle()">
+                    Auto
+                </label>
+                <select x-model="autoInterval" @change="onAutoIntervalChange()"
+                        x-show="autoRefresh" x-cloak style="min-width:58px">
+                    <option value="5">5 s</option>
+                    <option value="10">10 s</option>
+                    <option value="30">30 s</option>
+                    <option value="60">60 s</option>
+                </select>
+            </div>
         </div>
         <div class="meta">
-            {{STATUS_LABEL}}&nbsp;&nbsp;|&nbsp;&nbsp;Generated: <span>{{GENERATED_TIME}}</span>
+            <span x-text="statusLabel"></span>&nbsp;&nbsp;|&nbsp;&nbsp;Generated:&nbsp;<span x-text="generatedTime"></span>
         </div>
     </header>
     <div id="log-container">
-        <pre id="log-output">{{LOG_LINES}}</pre>
+        <pre id="log-output" x-html="logHtml">{{LOG_LINES}}</pre>
     </div>
+    <button class="scroll-btn" @click="scrollToBottom()" title="Scroll to bottom">&#8595;</button>
     <script>
 {{JS}}
     </script>
