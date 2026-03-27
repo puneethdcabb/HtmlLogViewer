@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Opt out of the solution-wide Directory.Build.props analyzer group (Nerdbank.GitVersioning)
+         since this project manages its own version manually via the Version property below. -->
+    <UseAnalyzers>False</UseAnalyzers>
+
+    <!-- NuGet package metadata -->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>HtmlLogViewer</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>ABB Ltd</Authors>
+    <Company>ABB Ltd</Company>
+    <Copyright>© Copyright 2025 ABB. All rights reserved.</Copyright>
+    <Description>
+      A lightweight ASP.NET Core log viewer for Serilog rolling log files.
+      Registers a browser-accessible route that lists all rolling log files,
+      supports configurable line-count selection (100 / 200 / 300 / All),
+      and renders a dark-themed HTML page — zero JavaScript dependencies.
+    </Description>
+    <PackageTags>logging;serilog;logviewer;aspnetcore;diagnostics;abb;gds</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <!-- Explicit root namespace so embedded resource names are deterministic:
+         HtmlLogViewer.Resources.viewer.{html|css|js} -->
+    <RootNamespace>HtmlLogViewer</RootNamespace>
+    <AnalysisLevel>none</AnalysisLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningLevel>0</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <WarningLevel>0</WarningLevel>
+  </PropertyGroup>
+
+  <!-- Provides IConfiguration, ControllerBase, IMvcBuilder, etc. without extra NuGet refs -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" Condition="Exists('README.md')" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\viewer.html" />
+    <EmbeddedResource Include="Resources\viewer.css" />
+    <EmbeddedResource Include="Resources\viewer.js" />
+  </ItemGroup>
+
+</Project>
