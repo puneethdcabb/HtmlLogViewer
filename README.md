@@ -1,9 +1,10 @@
 # HtmlLogViewer
 
 A lightweight ASP.NET Core log viewer for **Serilog rolling log files**.  
-Adds a single browser-accessible route that lists every rolling log file in
-the configured directory, lets users choose how many lines to display
-(100 / 200 / 300 / All), and renders a dark-themed, dependency-free HTML page.
+Adds a single browser-accessible route that lists every rolling log file it
+can discover, lets users choose how many lines to display, and renders a
+self-contained HTML page with **dark / light mode toggle** — zero external
+dependencies.
 
 ---
 
@@ -17,52 +18,122 @@ dotnet add package HtmlLogViewer
 
 ## Quick Start
 
+### 1 — Register the viewer
+
 ```csharp
-// Program.cs / Startup.cs
+// Program.cs
+builder.Services
+    .AddControllers()
+    .AddLogViewer();          // reads all settings from appsettings.json "LogViewer" section
+```
+
+`MapControllers()` must also be called, as with any ASP.NET Core controller:
+
+```csharp
+app.MapControllers();
+```
+
+### 2 — Add configuration to `appsettings.json`
+
+```json
+{
+  "LogViewer": {
+    "RoutePrefix"      : "logs",
+    "PageTitle"        : "My Application — Log Viewer",
+    "DefaultLineCount" : 200,
+    "LineCountOptions" : [ 100, 200, 300, 500 ],
+    "ExtraPaths"       : [ "logs", "C:\\OtherApp\\Logs" ]
+  }
+}
+```
+
+> **Why the `Serilog` section matters**  
+> The viewer auto-discovers log file paths by walking every `"path"` property
+> found anywhere inside the `Serilog` configuration section.  
+> If Serilog is configured **only** in code (not in `appsettings.json`), use
+> `ExtraPaths` to point the viewer at the log directory instead.
+
+### 3 — Wire Serilog from configuration *(recommended)*
+
+```csharp
+// Program.cs
+builder.Host.UseSerilog((ctx, cfg) =>
+    cfg.ReadFrom.Configuration(ctx.Configuration));
+```
+
+This keeps the `"Serilog"` section as the single source of truth for both
+the file sink and the viewer's path auto-discovery.
+
+---
+
+## `LogViewer` appsettings Reference
+
+| Key | Type | Default | Description |
+|---|---|---|---|
+| `RoutePrefix` | `string` | `"logs"` | URL path for the viewer — `https://host/{RoutePrefix}` |
+| `PageTitle` | `string` | `"Log Viewer"` | Browser-tab title and page `<h1>` |
+| `DefaultLineCount` | `int` | `100` | Number of lines shown on first load |
+| `LineCountOptions` | `int[]` | `[100, 200, 300]` | Choices in the **Lines** dropdown; `"All"` is always appended automatically |
+| `ExtraPaths` | `string[]` | `[]` | Extra file or directory paths scanned for `*.log` / `*.txt` files. Supports `%ENV%` variables. Useful when Serilog is configured in code rather than `appsettings.json` |
+
+---
+
+## Programmatic Override
+
+Settings from `appsettings.json` can be overridden in code via the optional
+`configure` delegate. The delegate runs **after** the config section is bound,
+so only the properties you touch are overridden:
+
+```csharp
 builder.Services
     .AddControllers()
     .AddLogViewer(options =>
     {
-        // Route:  https://host/logs  (default)
-        options.RoutePrefix  = "logs";
-
-        // Read the log path from appsettings.json Serilog section (default)
-        options.SerilogFilePathConfigKey = "Serilog:WriteTo:1:Args:path";
-
-        // Or supply an explicit path (overrides the config key lookup)
-        // options.LogFilePath = @"%PROGRAMDATA%\MyApp\Logs\App.log";
-
         options.PageTitle        = "My Application — Logs";
-        options.DefaultLineCount = 100;
-        options.LineCountOptions = [100, 200, 300];  // "All" is appended automatically
+        options.DefaultLineCount = 200;
+        options.LineCountOptions = [100, 200, 300, 500];
+        options.ExtraPaths       = [@"C:\OtherService\Logs"];
     });
 ```
 
-`MapControllers()` / `UseEndpoints(e => e.MapControllers())` must also be called,
-as with any ASP.NET Core controller.
+---
+
+## Log File Discovery
+
+The viewer collects candidate log paths from three sources on every request,
+then merges and de-duplicates them:
+
+| Priority | Source | How to configure |
+|---|---|---|
+| 1 | **Serilog auto-discovery** | Any `"path"` key anywhere in the `"Serilog"` appsettings section |
+| 2 | **`ExtraPaths`** | `LogViewer.ExtraPaths` in `appsettings.json` or code |
+| 3 | **Runtime directories** | Entered by the user in the **Log Directories** text box in the UI |
+
+Each resolved path may be a **file path** (its parent directory is used) or a
+**directory path** (scanned directly). All `*.log` and `*.txt` files are
+collected, de-duplicated, and sorted newest-first.
 
 ---
 
-## Options
+## Log Level Colours
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `SerilogFilePathConfigKey` | `string` | `"Serilog:WriteTo:1:Args:path"` | `IConfiguration` key holding the Serilog file path |
-| `LogFilePath` | `string?` | `null` | Explicit path (overrides config key). Supports `%ENV%` vars. |
-| `RoutePrefix` | `string` | `"logs"` | URL route for the viewer |
-| `LineCountOptions` | `int[]` | `[100, 200, 300]` | Choices in the lines dropdown; `"All"` is always added |
-| `DefaultLineCount` | `int` | `100` | Lines shown on first load |
-| `PageTitle` | `string` | `"Log Viewer"` | Browser tab title and page heading |
+Log lines are coloured by severity based on the token inside `[...]`:
+
+| Token | Meaning | Colour (dark mode) |
+|---|---|---|
+| `[INF]` | Information | Blue |
+| `[DBG]` | Debug | Green |
+| `[WRN]` | Warning | Yellow |
+| `[ERR]` | Error | Red-orange |
+| `[FTL]` | Fatal | Bold red |
 
 ---
 
-## How It Works
+## Dark / Light Mode
 
-* Resolves the log directory from config (expanding environment variables).
-* Discovers all `<BaseName>*.log` files (Serilog `rollingInterval: "Day"` naming).
-* Default selection is the **most recently written** file.
-* Opens the file with `FileShare.ReadWrite` so Serilog's write handle is never blocked.
-* Returns a self-contained HTML page — no CDN, no external assets.
+The viewer ships with a **dark/light mode toggle** button in the header.  
+The chosen theme is persisted in `localStorage` and restored automatically
+on the next page load — no server round-trip needed.
 
 ---
 
