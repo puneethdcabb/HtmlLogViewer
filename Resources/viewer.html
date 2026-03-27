@@ -10,7 +10,13 @@
 </head>
 <body>
     <header>
-        <h1>&#128221;&#160;{{PAGE_TITLE}}</h1>
+        <div class="header-top">
+            <h1>&#128221;&#160;{{PAGE_TITLE}}</h1>
+            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Switch theme">
+                <span id="theme-icon"></span>
+                <span id="theme-label">Dark</span>
+            </button>
+        </div>
         <div class="controls">
             <div class="ctrl-group">
                 <label for="file-select">Log file:</label>
