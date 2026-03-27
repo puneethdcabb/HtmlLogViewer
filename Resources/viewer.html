@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PAGE_TITLE}}</title>
+    <style>
+{{CSS}}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>&#128221;&#160;{{PAGE_TITLE}}</h1>
+        <div class="controls">
+            <div class="ctrl-group">
+                <label for="file-select">Log file:</label>
+                <select id="file-select">
+{{FILE_OPTIONS}}
+                </select>
+            </div>
+            <div class="ctrl-group">
+                <label for="lines-select">Lines:</label>
+                <select id="lines-select">
+{{LINES_OPTIONS}}
+                </select>
+            </div>
+            <div class="ctrl-group ctrl-dirs">
+                <label for="dirs-input">Log Directories:</label>
+                <input type="text" id="dirs-input"
+                       placeholder="C:\Logs\;D:\Other\"
+                       title="Semicolon-separated paths. Scanned for *.log and *.txt on Refresh."
+                       value="{{DIRS_VALUE}}">
+            </div>
+            <button onclick="doRefresh()">&#8635; Refresh</button>
+        </div>
+        <div class="meta">
+            {{STATUS_LABEL}}&nbsp;&nbsp;|&nbsp;&nbsp;Generated: <span>{{GENERATED_TIME}}</span>
+        </div>
+    </header>
+    <div id="log-container">
+        <pre id="log-output">{{LOG_LINES}}</pre>
+    </div>
+    <script>
+{{JS}}
+    </script>
+</body>
+</html>
