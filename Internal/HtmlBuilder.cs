@@ -23,7 +23,7 @@ internal static class HtmlBuilder
     private static string LoadResource(string fileName)
     {
         var assembly     = typeof(HtmlBuilder).Assembly;
-        var resourceName = $"ABB.GDS.LogViewer.Resources.{fileName}";
+        var resourceName = $"HtmlLogViewer.Resources.{fileName}";
 
         using var stream = assembly.GetManifestResourceStream(resourceName)
             ?? throw new InvalidOperationException(
@@ -78,7 +78,7 @@ internal static class HtmlBuilder
                 ? $"{fi.Name} ({fi.Directory?.Name ?? string.Empty})"
                 : fi.Name;
             sb.Append(
-                $"<option value=\"{{HttpUtility.HtmlAttributeEncode(fi.FullName)}}\"{sel}>" +
+                $"<option value=\"{HttpUtility.HtmlAttributeEncode(fi.FullName)}\"{sel}>" +
                 $"{HttpUtility.HtmlEncode(display)}</option>\n");
         }
         return sb.ToString();
@@ -92,7 +92,7 @@ internal static class HtmlBuilder
             var countStr = count.ToString(CultureInfo.InvariantCulture);
             var sel = selectedLines.Equals(countStr, StringComparison.OrdinalIgnoreCase)
                 ? " selected" : string.Empty;
-            sb.Append($"<option value=\"{{countStr}}\"{sel}>{{countStr}}</option>\n");
+            sb.Append($"<option value=\"{countStr}\"{sel}>{countStr}</option>\n");
         }
         var allSel = selectedLines.Equals("All", StringComparison.OrdinalIgnoreCase) ? " selected" : string.Empty;
         sb.Append($"<option value=\"All\"{allSel}>All</option>\n");
@@ -103,8 +103,8 @@ internal static class HtmlBuilder
     {
         var countStr = lineCount.ToString(CultureInfo.InvariantCulture);
         return selectedLines.Equals("All", StringComparison.OrdinalIgnoreCase)
-            ? $"All {{countStr}} lines"
-            : $"Last {{selectedLines}} lines ({{countStr}} shown)";
+            ? $"All {countStr} lines"
+            : $"Last {selectedLines} lines ({countStr} shown)";
     }
 
     private static string BuildLogLines(string[] logLines)
@@ -118,7 +118,7 @@ internal static class HtmlBuilder
                 : logLine.Contains("[FTL]", StringComparison.Ordinal)     ? "line-ftl"
                 : logLine.Contains("[DBG]", StringComparison.Ordinal)     ? "line-dbg"
                 : "line-inf";
-            sb.Append(CultureInfo.InvariantCulture, $"<span class=\"{{css}}\">{{escaped}}</span>\n");
+            sb.Append(CultureInfo.InvariantCulture, $"<span class=\"{css}\">{escaped}</span>\n");
         }
         return sb.ToString();
     }

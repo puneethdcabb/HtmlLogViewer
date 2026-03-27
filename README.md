@@ -1,4 +1,4 @@
-# ABB.GDS.LogViewer
+# HtmlLogViewer
 
 A lightweight ASP.NET Core log viewer for **Serilog rolling log files**.  
 Adds a single browser-accessible route that lists every rolling log file in
@@ -10,7 +10,7 @@ the configured directory, lets users choose how many lines to display
 ## Installation
 
 ```bash
-dotnet add package ABB.GDS.LogViewer
+dotnet add package HtmlLogViewer
 ```
 
 ---
