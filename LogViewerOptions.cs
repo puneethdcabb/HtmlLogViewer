@@ -57,4 +57,18 @@ public sealed class LogViewerOptions
     /// <para>Default: <c>10 000</c></para>
     /// </summary>
     public int AllLinesLimit { get; set; } = 10_000;
+
+    /// <summary>
+    /// When <c>true</c>, TLS/SSL certificate errors (expired, self-signed, hostname mismatch)
+    /// are ignored when the log viewer proxies requests to remote host instances.
+    /// <para><b>Warning:</b> only enable this on trusted internal networks.</para>
+    /// <para>
+    /// Configurable from <c>appsettings.json</c>:
+    /// <code>
+    /// "LogViewer": { "SkipRemoteSslValidation": true }
+    /// </code>
+    /// </para>
+    /// <para>Default: <c>false</c></para>
+    /// </summary>
+    public bool SkipRemoteSslValidation { get; set; } = false;
 }

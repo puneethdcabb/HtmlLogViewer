@@ -148,6 +148,26 @@ input[type="text"]::placeholder { color: var(--placeholder); font-style: italic;
 .ctrl-dirs { flex: 1 1 300px; }
 .ctrl-dirs input { width: 100%; }
 
+.ctrl-hosts { flex: 1 1 260px; }
+.ctrl-hosts input { width: 100%; }
+
+/* ⚠ Remote host error banner */
+.remote-errors {
+    font-size: 0.76rem;
+    color: var(--log-err);
+    margin-top: 4px;
+    padding: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.remote-loading {
+    color: var(--accent);
+    animation: lv-pulse 1.2s ease-in-out infinite;
+}
+
 /* 📝 Log container 📝 */
 #log-container {
     background: var(--bg-log);

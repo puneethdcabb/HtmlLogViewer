@@ -1,5 +1,6 @@
 // Copyright © ABB Ltd. All rights reserved.
 
+using System.Net.Http;
 using HtmlLogViewer.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,6 +64,25 @@ public static class LogViewerExtensions
             return new ConfigureOptions<MvcOptions>(
                 o => o.Conventions.Add(new LogViewerRouteConvention(opts)));
         });
+
+        // Named HttpClient used by the remote-host proxy endpoints.
+        // The primary handler is resolved from DI so SkipRemoteSslValidation is applied at startup.
+        mvcBuilder.Services
+            .AddHttpClient("logviewer-remote")
+            .ConfigurePrimaryHttpMessageHandler(sp =>
+            {
+                var opts    = sp.GetRequiredService<IOptions<LogViewerOptions>>().Value;
+                var handler = new HttpClientHandler();
+                if (opts.SkipRemoteSslValidation)
+                    handler.ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                return handler;
+            })
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Add("User-Agent", "HtmlLogViewer-RemoteProxy/1.0");
+            });
 
         return mvcBuilder;
     }

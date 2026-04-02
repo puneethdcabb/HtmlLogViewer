@@ -37,7 +37,14 @@
                        placeholder="C:\Logs\;D:\Other\"
                        title="Semicolon-separated paths. Scanned for *.log and *.txt on Refresh.">
             </div>
-            <button @click="fetchData()">&#8635;&nbsp;Refresh</button>
+            <div class="ctrl-group ctrl-hosts">
+                <label for="hosts-input">Remote Hosts:</label>
+                <input type="text" id="hosts-input" x-model="remoteHosts"
+                       placeholder="node1:8932;node2:9920/customlogs"
+                       title="Semicolon-separated entries. Format: host:port or host:port/routeprefix. HTTPS is used by default; prefix defaults to 'logs' if omitted. Example: node1:8932;node2:9920/api/logs;http://dev3:5000"
+                       @keydown.enter.prevent="fetchRemoteFiles()">
+            </div>
+            <button @click="onRefresh()">&#8635;&nbsp;Refresh</button>
             <div class="ctrl-group ctrl-autorefresh">
                 <label class="auto-label">
                     <input type="checkbox" x-model="autoRefresh" @change="onAutoRefreshToggle()">
@@ -51,6 +58,10 @@
                     <option value="60">60 s</option>
                 </select>
             </div>
+        </div>
+        <div class="remote-errors" x-show="remoteErrors.length > 0" x-cloak>
+            &#9888;&nbsp;<span x-text="remoteErrors.join(' \u2502 ')"></span>
+            <span class="remote-loading" x-show="loadingRemote">&nbsp;&#8635;&nbsp;Fetching&hellip;</span>
         </div>
         <div class="meta">
             <span x-text="statusLabel"></span>&nbsp;&nbsp;|&nbsp;&nbsp;Generated:&nbsp;<span x-text="generatedTime"></span>
