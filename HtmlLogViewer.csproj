@@ -53,6 +53,7 @@
     <EmbeddedResource Include="Resources\viewer.html" />
     <EmbeddedResource Include="Resources\viewer.css" />
     <EmbeddedResource Include="Resources\viewer.js" />
+    <EmbeddedResource Include="Resources\alpine.min.js" />
   </ItemGroup>
 
 </Project>

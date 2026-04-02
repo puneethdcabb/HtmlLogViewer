@@ -8,7 +8,6 @@
 {{CSS}}
     </style>
     <script>window.__LV__ = {{BOOTSTRAP_JSON}};</script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 </head>
 <body x-data="logViewer()" x-init="init()" :class="{ 'light-mode': isLight }">
     <header>
@@ -58,11 +57,12 @@
         </div>
     </header>
     <div id="log-container">
-        <pre id="log-output" x-html="logHtml">{{LOG_LINES}}</pre>
+        <div id="log-output" x-html="logHtml">{{LOG_LINES}}</div>
     </div>
     <button class="scroll-btn" @click="scrollToBottom()" title="Scroll to bottom">&#8595;</button>
     <script>
 {{JS}}
     </script>
+    <script>{{ALPINE_JS}}</script>
 </body>
 </html>

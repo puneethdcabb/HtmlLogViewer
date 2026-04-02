@@ -20,6 +20,7 @@ internal static class HtmlBuilder
     private static readonly Lazy<string> HtmlTemplate = new(static () => LoadResource("viewer.html"));
     private static readonly Lazy<string> CssContent   = new(static () => LoadResource("viewer.css"));
     private static readonly Lazy<string> JsContent    = new(static () => LoadResource("viewer.js"));
+    private static readonly Lazy<string> AlpineJs     = new(static () => LoadResource("alpine.min.js"));
 
     private static string LoadResource(string fileName)
     {
@@ -49,6 +50,7 @@ internal static class HtmlBuilder
 
         return HtmlTemplate.Value
             .Replace("{{CSS}}",            CssContent.Value,                                              StringComparison.Ordinal)
+            .Replace("{{ALPINE_JS}}",      AlpineJs.Value,                                                StringComparison.Ordinal)
             .Replace("{{JS}}",             JsContent.Value,                                               StringComparison.Ordinal)
             .Replace("{{PAGE_TITLE}}",     HttpUtility.HtmlEncode(options.PageTitle),                 StringComparison.Ordinal)
             .Replace("{{FILE_OPTIONS}}",   BuildFileOptions(allFiles, logFilePath),                   StringComparison.Ordinal)
@@ -160,7 +162,7 @@ internal static class HtmlBuilder
 
     private static string BuildLogLines(string[] logLines)
     {
-        var sb = new StringBuilder(capacity: logLines.Length * 150);
+        var sb = new StringBuilder(capacity: logLines.Length * 165);
         foreach (var logLine in logLines)
         {
             var css = logLine.Contains("[ERR]", StringComparison.Ordinal) ? "line-err"
@@ -168,11 +170,11 @@ internal static class HtmlBuilder
                 : logLine.Contains("[FTL]", StringComparison.Ordinal)     ? "line-ftl"
                 : logLine.Contains("[DBG]", StringComparison.Ordinal)     ? "line-dbg"
                 : "line-inf";
-            sb.Append("<span class=\"");
+            sb.Append("<div class=\"log-line ");
             sb.Append(css);
             sb.Append("\">");
             AppendHtmlEncoded(sb, logLine.AsSpan());
-            sb.Append("</span>\n");
+            sb.Append("</div>");
         }
         return sb.ToString();
     }

@@ -28,7 +28,7 @@ function logViewer() {
             // Restore saved theme preference
             this.isLight = localStorage.getItem('logViewerTheme') === 'light';
 
-            // Capture the server-rendered log HTML before Alpine.js takes over the <pre>
+            // Capture the server-rendered log HTML before Alpine.js takes over the log div
             var pre = document.getElementById('log-output');
             if (pre) this.logHtml = pre.innerHTML;
 

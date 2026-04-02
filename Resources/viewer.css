@@ -148,22 +148,33 @@ input[type="text"]::placeholder { color: var(--placeholder); font-style: italic;
 .ctrl-dirs { flex: 1 1 300px; }
 .ctrl-dirs input { width: 100%; }
 
-/* ?? Log container ?? */
+/* 📝 Log container 📝 */
 #log-container {
     background: var(--bg-log);
     border: 1px solid var(--border-log);
     border-radius: 6px;
     padding: 14px 16px;
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 175px);
     transition: background-color 0.25s, border-color 0.25s;
 }
 
-pre {
+#log-output {
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     font-size: 0.82rem;
     line-height: 1.6;
     white-space: pre-wrap;
     word-break: break-all;
+}
+
+/* Each log line is a block element so the browser can skip layout+paint
+   for rows that are scrolled out of view (CSS content containment). */
+.log-line {
+    content-visibility: auto;
+    /* Fallback intrinsic height used for off-screen lines:
+       0.82rem * 1.6 * 16px ≈ 21px. Prevents scrollbar jumping on large files. */
+    contain-intrinsic-size: auto 21px;
 }
 
 /* ?? Log level colours ?? */
