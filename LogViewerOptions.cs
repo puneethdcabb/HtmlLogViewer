@@ -1,9 +1,9 @@
-// Copyright © ABB Ltd. All rights reserved.
+// Copyright © Puneeth DC Ltd. All rights reserved.
 
 namespace HtmlLogViewer;
 
 /// <summary>
-/// Configuration options for the ABB GDS Log Viewer.
+/// Configuration options for the Puneeth DC GDS Log Viewer.
 /// Bind from the <c>"LogViewer"</c> appsettings section or pass an
 /// <see cref="Action{LogViewerOptions}"/> to <see cref="LogViewerExtensions.AddLogViewer"/>.
 /// </summary>

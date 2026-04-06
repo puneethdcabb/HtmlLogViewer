@@ -1,4 +1,4 @@
-// Copyright © ABB Ltd. All rights reserved.
+// Copyright © Puneeth DC Ltd. All rights reserved.
 
 using System.Text;
 using System.Text.Json;

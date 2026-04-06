@@ -1,4 +1,4 @@
-// Copyright © ABB Ltd. All rights reserved.
+// Copyright © Puneeth DC Ltd. All rights reserved.
 
 using System.Net.Http;
 using HtmlLogViewer.Internal;
@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace HtmlLogViewer;
 
 /// <summary>
-/// Extension methods to register the ABB GDS Log Viewer into an ASP.NET Core application.
+/// Extension methods to register the Puneeth DC GDS Log Viewer into an ASP.NET Core application.
 /// </summary>
 public static class LogViewerExtensions
 {
