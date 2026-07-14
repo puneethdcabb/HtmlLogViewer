@@ -1,9 +1,9 @@
-// Copyright © ABB Ltd. All rights reserved.
+// Copyright © Puneeth DC Ltd. All rights reserved.
 
 namespace HtmlLogViewer;
 
 /// <summary>
-/// Configuration options for the ABB GDS Log Viewer.
+/// Configuration options for the Puneeth DC GDS Log Viewer.
 /// Bind from the <c>"LogViewer"</c> appsettings section or pass an
 /// <see cref="Action{LogViewerOptions}"/> to <see cref="LogViewerExtensions.AddLogViewer"/>.
 /// </summary>
@@ -44,4 +44,31 @@ public sealed class LogViewerOptions
     /// environment-variable placeholders (e.g. <c>%PROGRAMDATA%\MyApp\Logs\App.log</c>).
     /// </summary>
     public string[] ExtraPaths { get; set; } = [];
+
+    /// <summary>
+    /// Hard cap on the number of lines returned when the user selects <c>"All"</c>.
+    /// Without this guard a very large log file (hundreds of MB) can exhaust server
+    /// memory and freeze the browser tab trying to render the result.
+    /// <para>
+    /// The last <c>AllLinesLimit</c> lines of the file are returned; the status bar
+    /// shows a warning when the file was larger than the cap.
+    /// </para>
+    /// <para>Set to <c>0</c> to disable the cap — only safe for files under ~50 MB.</para>
+    /// <para>Default: <c>10 000</c></para>
+    /// </summary>
+    public int AllLinesLimit { get; set; } = 10_000;
+
+    /// <summary>
+    /// When <c>true</c>, TLS/SSL certificate errors (expired, self-signed, hostname mismatch)
+    /// are ignored when the log viewer proxies requests to remote host instances.
+    /// <para><b>Warning:</b> only enable this on trusted internal networks.</para>
+    /// <para>
+    /// Configurable from <c>appsettings.json</c>:
+    /// <code>
+    /// "LogViewer": { "SkipRemoteSslValidation": true }
+    /// </code>
+    /// </para>
+    /// <para>Default: <c>false</c></para>
+    /// </summary>
+    public bool SkipRemoteSslValidation { get; set; } = false;
 }

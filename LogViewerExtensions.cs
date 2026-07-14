@@ -1,5 +1,6 @@
-// Copyright © ABB Ltd. All rights reserved.
+// Copyright © Puneeth DC Ltd. All rights reserved.
 
+using System.Net.Http;
 using HtmlLogViewer.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace HtmlLogViewer;
 
 /// <summary>
-/// Extension methods to register the ABB GDS Log Viewer into an ASP.NET Core application.
+/// Extension methods to register the Puneeth DC GDS Log Viewer into an ASP.NET Core application.
 /// </summary>
 public static class LogViewerExtensions
 {
@@ -63,6 +64,25 @@ public static class LogViewerExtensions
             return new ConfigureOptions<MvcOptions>(
                 o => o.Conventions.Add(new LogViewerRouteConvention(opts)));
         });
+
+        // Named HttpClient used by the remote-host proxy endpoints.
+        // The primary handler is resolved from DI so SkipRemoteSslValidation is applied at startup.
+        mvcBuilder.Services
+            .AddHttpClient("logviewer-remote")
+            .ConfigurePrimaryHttpMessageHandler(sp =>
+            {
+                var opts    = sp.GetRequiredService<IOptions<LogViewerOptions>>().Value;
+                var handler = new HttpClientHandler();
+                if (opts.SkipRemoteSslValidation)
+                    handler.ServerCertificateCustomValidationCallback =
+                        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+                return handler;
+            })
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Add("User-Agent", "HtmlLogViewer-RemoteProxy/1.0");
+            });
 
         return mvcBuilder;
     }

@@ -12,17 +12,17 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>HtmlLogViewer</PackageId>
-    <Version>1.0.0</Version>
-    <Authors>ABB Ltd</Authors>
-    <Company>ABB Ltd</Company>
-    <Copyright>© Copyright 2025 ABB. All rights reserved.</Copyright>
+    <Version>1.1.0</Version>
+    <Authors>Puneeth DC Ltd</Authors>
+    <Company>Puneeth DC Ltd</Company>
+    <Copyright>© Copyright 2025 Puneeth DC. All rights reserved.</Copyright>
     <Description>
       A lightweight ASP.NET Core log viewer for Serilog rolling log files.
       Registers a browser-accessible route that lists all rolling log files,
       supports configurable line-count selection (100 / 200 / 300 / All),
       and renders a dark-themed HTML page — zero JavaScript dependencies.
     </Description>
-    <PackageTags>logging;serilog;logviewer;aspnetcore;diagnostics;abb;gds</PackageTags>
+    <PackageTags>logging;serilog;logviewer;aspnetcore;diagnostics;puneeth;gds</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/puneethdcabb/HtmlLogViewer</RepositoryUrl>
@@ -60,6 +60,7 @@
     <EmbeddedResource Include="Resources\viewer.html" />
     <EmbeddedResource Include="Resources\viewer.css" />
     <EmbeddedResource Include="Resources\viewer.js" />
+    <EmbeddedResource Include="Resources\alpine.min.js" />
   </ItemGroup>
 
 </Project>
