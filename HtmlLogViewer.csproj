@@ -24,7 +24,14 @@
     </Description>
     <PackageTags>logging;serilog;logviewer;aspnetcore;diagnostics;abb;gds</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/puneethdcabb/HtmlLogViewer</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/puneethdcabb/HtmlLogViewer</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <!-- Explicit root namespace so embedded resource names are deterministic:
          HtmlLogViewer.Resources.viewer.{html|css|js} -->
     <RootNamespace>HtmlLogViewer</RootNamespace>

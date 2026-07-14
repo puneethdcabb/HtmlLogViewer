@@ -1,0 +1,70 @@
+name: Publish NuGet Package
+
+on:
+  push:
+	tags:
+	  - 'v*'          # triggers on v1.0.0, v1.2.3, etc.
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+jobs:
+  build-and-publish:
+	name: Build, Pack & Publish
+	runs-on: ubuntu-latest
+
+	steps:
+	  - name: Checkout source
+		uses: actions/checkout@v4
+		with:
+		  fetch-depth: 0   # full history needed for source-link
+
+	  - name: Set up .NET 10
+		uses: actions/setup-dotnet@v4
+		with:
+		  dotnet-version: '10.x'
+
+	  # Extract the version from the git tag (strips the leading 'v')
+	  - name: Derive package version from tag
+		id: version
+		run: |
+		  if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+			VERSION="${GITHUB_REF#refs/tags/v}"
+		  else
+			VERSION="0.0.0-dev"
+		  fi
+		  echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+		  echo "Resolved version: ${VERSION}"
+
+	  - name: Restore dependencies
+		run: dotnet restore HtmlLogViewer.csproj
+
+	  - name: Build (Release)
+		run: dotnet build HtmlLogViewer.csproj --configuration Release --no-restore /p:Version=${{ steps.version.outputs.VERSION }}
+
+	  - name: Pack
+		run: >
+		  dotnet pack HtmlLogViewer.csproj
+		  --configuration Release
+		  --no-build
+		  --output ./nupkgs
+		  /p:Version=${{ steps.version.outputs.VERSION }}
+
+	  - name: Upload package artifacts
+		uses: actions/upload-artifact@v4
+		with:
+		  name: nupkgs
+		  path: ./nupkgs/
+
+	  - name: Push to NuGet.org
+		run: >
+		  dotnet nuget push ./nupkgs/*.nupkg
+		  --api-key ${{ secrets.NUGET_API_KEY }}
+		  --source https://api.nuget.org/v3/index.json
+		  --skip-duplicate
+
+	  - name: Push symbol package to NuGet.org
+		run: >
+		  dotnet nuget push ./nupkgs/*.snupkg
+		  --api-key ${{ secrets.NUGET_API_KEY }}
+		  --source https://api.nuget.org/v3/index.json
+		  --skip-duplicate
+		continue-on-error: true   # snupkg is best-effort
