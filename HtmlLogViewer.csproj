@@ -12,7 +12,7 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>HtmlLogViewer</PackageId>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Puneeth DC Ltd</Authors>
     <Company>Puneeth DC Ltd</Company>
     <Copyright>© Copyright 2025 Puneeth DC. All rights reserved.</Copyright>
