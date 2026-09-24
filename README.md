@@ -218,4 +218,4 @@ Every node hosting `HtmlLogViewer` exposes these routes:
 
 ## License
 
-© Copyright 2025 ABB Ltd. All rights reserved.
+© Copyright 2025 Puneeth DC. All rights reserved.
